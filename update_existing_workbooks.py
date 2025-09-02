@@ -1,7 +1,9 @@
 import os
 from openpyxl import load_workbook
 
-TARGET_DIR = "/workspace/Security_Refund_Sheets_2025_20250903_033335"
+# Use path relative to this script so it works on Windows too
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+TARGET_DIR = os.path.join(SCRIPT_DIR, "Security_Refund_Sheets_2025_20250903_033335")
 
 def fix_workbook(path):
     wb = load_workbook(path)

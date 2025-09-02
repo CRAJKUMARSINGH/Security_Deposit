@@ -239,6 +239,11 @@ def create_single_work_sheet(wb, row, work_idx):
     for row_idx in range(table_header_row, table_header_row + len(table_data) + 1):
         for col_letter in ('A', 'B'):
             ws[f'{col_letter}{row_idx}'].border = thin_border
+
+    # Explicitly enforce borders on A20:B26 regardless of layout shifts
+    for row_idx in range(20, 27):
+        for col_letter in ('A', 'B'):
+            ws[f'{col_letter}{row_idx}'].border = thin_border
     
     # No blank rows after total
     
@@ -305,6 +310,9 @@ def create_single_work_sheet(wb, row, work_idx):
         if cell_value and str(cell_value).startswith("5."):
             ws.row_dimensions[row_num].height = 26
             break
+    
+    # Special case: Double the height of row 32 (~40 points)
+    ws.row_dimensions[32].height = 40
     
     # Setup default print layout for all sheets
     setup_default_print_layout(ws)
