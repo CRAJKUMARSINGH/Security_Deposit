@@ -161,7 +161,6 @@ def create_single_work_sheet(wb, row, work_idx):
             ws[f'A{current_row}'] = f"{field_label} {field_value}"
             ws[f'A{current_row}'].font = value_font
             ws[f'A{current_row}'].alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
-            ws[f'A{current_row}'].border = thin_border
         else:
             # All other items: Label in A, Value in E (shifting from C to E)
             ws[f'A{current_row}'] = field_label
@@ -189,6 +188,7 @@ def create_single_work_sheet(wb, row, work_idx):
     headers = ["Bill Type", "MB No.", "SD Type", "Amount (₹)"]
     
     # First header spans A and B
+    table_header_row = current_row
     ws.merge_cells(f'A{current_row}:B{current_row}')
     ws[f'A{current_row}'] = headers[0]
     ws[f'A{current_row}'].font = header_font
@@ -234,6 +234,17 @@ def create_single_work_sheet(wb, row, work_idx):
             ws[f'{col_letter}{current_row}'].border = thin_border
         current_row += 1
     
+    # Ensure borders are correctly applied to A20:B26 (table header + 6 data rows)
+    # Based on the current layout, this corresponds to table_header_row through table_header_row + len(table_data)
+    for row_idx in range(table_header_row, table_header_row + len(table_data) + 1):
+        for col_letter in ('A', 'B'):
+            ws[f'{col_letter}{row_idx}'].border = thin_border
+
+    # Explicitly enforce borders on A20:B26 regardless of layout shifts
+    for row_idx in range(20, 27):
+        for col_letter in ('A', 'B'):
+            ws[f'{col_letter}{row_idx}'].border = thin_border
+    
     # No blank rows after total
     
     # Certification section - no borders, proper formatting
@@ -251,20 +262,17 @@ def create_single_work_sheet(wb, row, work_idx):
             ws[f'A{current_row}'] = cert_item
             ws[f'A{current_row}'].font = header_font
             ws[f'A{current_row}'].alignment = left_alignment
-            ws[f'A{current_row}'].border = thin_border
         elif cert_item.startswith("5."):
             # Special handling for point 5 - span columns A to E with wrap text and proper height
             ws.merge_cells(f'A{current_row}:E{current_row}')
             ws[f'A{current_row}'] = cert_item
             ws[f'A{current_row}'].font = small_font
             ws[f'A{current_row}'].alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
-            ws[f'A{current_row}'].border = thin_border
             ws.row_dimensions[current_row].height = 26  # Set to 26 points as requested
         else:
             ws[f'A{current_row}'] = cert_item
             ws[f'A{current_row}'].font = small_font
             ws[f'A{current_row}'].alignment = left_alignment
-            ws[f'A{current_row}'].border = thin_border
         current_row += 1
     
     # Signature section - no borders, proper layout
@@ -303,6 +311,9 @@ def create_single_work_sheet(wb, row, work_idx):
             ws.row_dimensions[row_num].height = 26
             break
     
+    # Special case: Double the height of row 32 (~40 points)
+    ws.row_dimensions[32].height = 40
+    
     # Setup default print layout for all sheets
     setup_default_print_layout(ws)
     
@@ -339,7 +350,7 @@ def setup_default_print_layout(ws):
     ws.page_setup.fitToHeight = 1  # Fit to 1 page tall
     
     # Center the page horizontally
-    ws.page_setup.horizontalCentered = True
+    ws.print_options.horizontalCentered = True
     
     # Set header and footer
     ws.oddHeader.center.text = "Security Deposit Refund Form"
